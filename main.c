@@ -48,6 +48,8 @@ Img in, out;
 
 // Protótipos
 void load(char* name, Img* pic);
+void confusao(Img *imagem);
+void confusaoInversa(Img *imagem);
 
 int main(int argc, char* argv[]) {
   if (argc < 2) {
@@ -81,6 +83,7 @@ int main(int argc, char* argv[]) {
   // ...
   //
   // Exemplo: inverte as cores
+
   for (int i = 0; i < in.height; i++) {
     for (int j = 0; j < in.width; j++) {
       pout[i][j].r = 255 - pin[i][j].r;
@@ -94,6 +97,37 @@ int main(int argc, char* argv[]) {
 
   free(in.pixels);
   free(out.pixels);
+}
+
+  //OS NUMEROS 40, 20, E 206, NÃO FORAM ESCOLHIDOS ALEATORIAMENTE, EU ESCOLHI POIS MINHA DATA DE NASCIMENTO É 04/02/2006, CURIOSAMENTE.
+  void confusao(Img *imagem) { 
+    int tam = imagem->width * imagem->height;
+
+    for (int i = 0; i < tam; i++) {
+        imagem->pixels[i].r =
+            (imagem->pixels[i].r + 40) % 256;
+
+        imagem->pixels[i].g =
+            (imagem->pixels[i].g + 20) % 256;
+
+        imagem->pixels[i].b =
+            (imagem->pixels[i].b + 206) % 256;
+    }
+}
+
+void confusaoInversa(Img *imagem) {
+    int tam = imagem->width * imagem->height;
+
+    for (int i = 0; i < tam; i++) {
+        imagem->pixels[i].r =
+            (imagem->pixels[i].r - 40 + 256) % 256;
+
+        imagem->pixels[i].g =
+            (imagem->pixels[i].g - 20 + 256) % 256;
+
+        imagem->pixels[i].b =
+            (imagem->pixels[i].b - 206 + 256) % 256;
+    }
 }
 
 void load(char* name, Img* pic) {
