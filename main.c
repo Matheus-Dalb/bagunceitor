@@ -50,6 +50,9 @@ Img in, out;
 void load(char* name, Img* pic);
 void confusao(Img *imagem);
 void confusaoInversa(Img *imagem);
+void difusao(Img *imagem);
+void difusaoInversa(Img *imagem);
+
 
 int main(int argc, char* argv[]) {
   if (argc < 2) {
@@ -65,35 +68,41 @@ int main(int argc, char* argv[]) {
 
   printf("Processando...\n");
 
-  // Cria imagem de saída e "zera" ela
+  // Cria imagem de saída
   int tam = in.width * in.height;
   out = in;
   out.pixels = malloc(tam * sizeof(Pixel));
-  memset(out.pixels, 0, tam * sizeof(Pixel));
 
-  // Converte para interpretar como matrizes
-  Pixel(*pin)[in.width] = (Pixel(*)[in.height])in.pixels;
-  Pixel(*pout)[in.width] = (Pixel(*)[in.height])out.pixels;
-
-  //
-  // Neste ponto, voce deve implementar os seus algoritmos!
-  // (ou chamar funcoes para fazer isso)
-  //
-  // Aplica o algoritmo em pin e gera a saida em pout
-  // ...
-  //
-  // Exemplo: inverte as cores
-
-  for (int i = 0; i < in.height; i++) {
-    for (int j = 0; j < in.width; j++) {
-      pout[i][j].r = 255 - pin[i][j].r;
-      pout[i][j].g = 255 - pin[i][j].g;
-      pout[i][j].b = 255 - pin[i][j].b;
-    }
+  if (out.pixels == NULL) {
+    printf("Erro ao alocar memoria!\n");
+    stbi_image_free(in.pixels);
+    return 1;
   }
 
-  // Grava a imagem como PNG para registro
+  // Copia os pixels da imagem original para a imagem de saída
+  memcpy(out.pixels, in.pixels, tam * sizeof(Pixel));
+
+  // Converte para interpretar como matrizes
+  Pixel(*pin)[in.width] = (Pixel(*)[in.width])in.pixels;
+  Pixel(*pout)[in.width] = (Pixel(*)[in.width])out.pixels;
+
+  //
+  // Implementação dos algoritmos
+  //
+
+  // Aplica confusão e difusão
+  confusao(&out);
+  difusao(&out);
+
+  // Grava a imagem transformada
   stbi_write_png("saida.png", out.width, out.height, 3, pout, 0);
+
+  // Desfaz as operações para recuperar a imagem original
+  difusaoInversa(&out);
+  confusaoInversa(&out);
+
+  // Grava a imagem recuperada para teste
+  stbi_write_png("recuperada.png", out.width, out.height, 3, pout, 0);
 
   free(in.pixels);
   free(out.pixels);
@@ -128,6 +137,66 @@ void confusaoInversa(Img *imagem) {
         imagem->pixels[i].b =
             (imagem->pixels[i].b - 206 + 256) % 256;
     }
+}
+
+void difusao(Img *imagem) {
+    int largura = imagem->width;
+    int altura = imagem->height;
+
+    Pixel *linhaTemp = malloc(largura * sizeof(Pixel));
+
+    if (linhaTemp == NULL) {
+        printf("erro na memoria\n");
+        return;
+    }
+
+    for (int i = 0; i < altura; i++) {
+        int deslocamento = (i + 1) % largura;
+
+        // copia a linha original
+        for (int j = 0; j < largura; j++) {
+            linhaTemp[j] = imagem->pixels[i * largura + j];
+        }
+
+        // muda os pixeis de posição para as novas posições
+        for (int j = 0; j < largura; j++) {
+            int novaPosicao = (j + deslocamento) % largura;
+
+            imagem->pixels[i * largura + novaPosicao] = linhaTemp[j];
+        }
+    }
+
+    free(linhaTemp);
+}
+
+void difusaoInversa(Img *imagem) {
+    int largura = imagem->width;
+    int altura = imagem->height;
+
+    Pixel *linhaTemp = malloc(largura * sizeof(Pixel));
+
+    if (linhaTemp == NULL) {
+        printf("erro na memoria\n");
+        return;
+    }
+
+    for (int i = 0; i < altura; i++) {
+        int deslocamento = (i + 1) % largura;
+
+        // copia a linha
+        for (int j = 0; j < largura; j++) {
+            linhaTemp[j] = imagem->pixels[i * largura + j];
+        }
+
+        // muda os pixeis de posição para as originais
+        for (int j = 0; j < largura; j++) {
+            int novaPosicao = (j - deslocamento + largura) % largura;
+
+            imagem->pixels[i * largura + novaPosicao] = linhaTemp[j];
+        }
+    }
+
+    free(linhaTemp);
 }
 
 void load(char* name, Img* pic) {
