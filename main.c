@@ -100,7 +100,23 @@ int main(int argc, char* argv[]) {
   // Desfaz as operações para recuperar a imagem original
   difusaoInversa(&out);
   confusaoInversa(&out);
+ // Confere se a imagem recuperada é igual à original
+  int iguais = 1;
 
+for (int i = 0; i < tam; i++) {
+  if (in.pixels[i].r != out.pixels[i].r ||
+      in.pixels[i].g != out.pixels[i].g ||
+      in.pixels[i].b != out.pixels[i].b) {
+    iguais = 0;
+    break;
+  }
+}
+
+if (iguais) {
+  printf("A imagem recuperada esta exatamente igual.\n");
+} else {
+  printf("A imagem recuperada esta diferente da original\n");
+}
   // Grava a imagem recuperada para teste
   stbi_write_png("recuperada.png", out.width, out.height, 3, pout, 0);
 
@@ -201,7 +217,8 @@ void difusaoInversa(Img *imagem) {
 
 void load(char* name, Img* pic) {
   pic->pixels =
-      (Pixel*)stbi_load(name, &pic->width, &pic->height, &pic->channels, 0);
+      stbi_load(name, &pic->width, &pic->height,
+          &pic->channels, 3);//mudei para garantir que a imagem seja carregada em RGB
   if (!pic->pixels) {
     printf("Erro de leitura: %s\n", stbi_failure_reason());
     exit(1);
